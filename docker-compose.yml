@@ -1,0 +1,9 @@
+version: "2"
+
+services:
+  app:
+    image: golang:1.8.0-alpine
+    volumes:
+      - .:/go/src/go-with-compose
+    working_dir: /go/src/go-with-compose
+    command: go get && go run main.go
