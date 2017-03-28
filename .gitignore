@@ -1,0 +1,7 @@
+openshift-slack-notifications.iml
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# Ignore dependencies
+vendor/

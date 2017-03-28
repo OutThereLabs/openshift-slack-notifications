@@ -1,0 +1,99 @@
+kind: Template
+apiVersion: v1
+labels:
+  template: go-dev-template
+objects:
+- kind: "BuildConfig"
+  apiVersion: "v1"
+  metadata:
+    name: "go"
+  spec:
+    source:
+      type: "Git"
+      git:
+        uri: "https://github.com/jtescher/s2i-go"
+        ref: 'go-18'
+    strategy:
+      type: Docker
+      dockerStrategy:
+        dockerfilePath: 1.8/Dockerfile
+    output:
+      to:
+        kind: "ImageStreamTag"
+        name: "go:latest"
+
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: go
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${APPLICATION_NAME}
+    annotations:
+      description: Defines how to deploy the go environment
+  spec:
+    triggers:
+      - type: ConfigChange
+      - type: ImageChange
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - ${APPLICATION_NAME}
+          from:
+            kind: ImageStreamTag
+            name: go:latest
+    replicas: 0
+    selector:
+      name: ${APPLICATION_NAME}
+    template:
+      metadata:
+        name: ${APPLICATION_NAME}
+        labels:
+          name: ${APPLICATION_NAME}
+      spec:
+        containers:
+          - name: ${APPLICATION_NAME}
+            env:
+              - name: SLACK_WEBHOOK_URL
+                value: ${SLACK_WEBHOOK_URL}
+              - name: OPENSHIFT_CONSOLE_URL
+                value: ${OPENSHIFT_CONSOLE_URL}
+            image: ' '
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 8080
+              initialDelaySeconds: 60
+              timeoutSeconds: 1
+            stdin: true
+            tty: true
+            volumeMounts:
+              - mountPath: "/opt/app-root/src/go/github.com/outtherelabs/openshift-slack-notifications"
+                name: source
+        securityContext:
+          runAsUser: 0
+        volumes:
+        - name: source
+          hostPath:
+            path: ${SOURCE_PATH}
+
+parameters:
+- description: The name of the environment
+  displayName: Application name
+  name: APPLICATION_NAME
+  required: true
+  value: go-dev
+- description: The path to your source directory
+  displayName: Source Path
+  name: SOURCE_PATH
+  required: true
+- description: Openshift console URL. E.g. http://company.com/console
+  displayName: OpenShift Console URL
+  name: OPENSHIFT_CONSOLE_URL
+  required: true
+- description: The slack webhook url that notifications will be sent to.
+  displayName: Slack Webhook URL
+  name: SLACK_WEBHOOK_URL
+  required: true

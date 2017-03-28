@@ -1,0 +1,9 @@
+package: github.com/outtherelabs/openshift-slack-notifications
+import:
+- package: k8s.io/client-go
+  version: ~2.0.0
+  subpackages:
+  - kubernetes
+  - pkg
+  - rest
+  - tools
