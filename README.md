@@ -4,14 +4,21 @@ A project to send OpenShift error messages to a slack channel of your choice.
 
 ## Cluster Deployment
 
-To deploy this to OpenShift, simply process the
+First create a [Slack Incoming Webhook](https://my.slack.com/services/new/incoming-webhook).
+
+Then deploy this bot to OpenShift with permissions via:
 
 ```shell
 $ oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:<current-project-here>:default --as=system:admin
 $ oc new-app -f https://raw.githubusercontent.com/OutThereLabs/openshift-slack-notifications/master/template.yaml \
              -p SLACK_WEBHOOK_URL=https://hooks.slack.com/services/<webhook-specifics-here> \
              -p OPENSHIFT_CONSOLE_URL=https://<openshift-host-here>:8443/console
+$ oc start-build openshift-slack-notifications
 ```
+
+Once the app is built and deployed, it will start sending notifications to slack when there are `Warning` type events.
+
+![Slackbot Message](images/slack-bot-message.png)
 
 ## Local Development
 
