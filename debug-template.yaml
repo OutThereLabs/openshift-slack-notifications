@@ -1,51 +1,38 @@
 kind: Template
 apiVersion: v1
 labels:
-  template: openshift-slack-notifications
+  template: go-dev-template
 objects:
-- kind: ImageStream
-  apiVersion: v1
+- kind: "BuildConfig"
+  apiVersion: "v1"
   metadata:
-    name: go
-  spec:
-    tags:
-    - from:
-        kind: DockerImage
-        name: jatescher/s2i-go:latest
-      name: latest
-
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: ${APPLICATION_NAME}
-
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: ${APPLICATION_NAME}
+    name: "go"
   spec:
     source:
       type: "Git"
       git:
-        uri: "https://github.com/outtherelabs/openshift-slack-notifications"
+        uri: "https://github.com/jtescher/s2i-go"
+        ref: 'go-18'
     strategy:
-      type: Source
-      sourceStrategy:
-          from:
-            kind: ImageStreamTag
-            name: "go:latest"
-          incremental: true
+      type: Docker
+      dockerStrategy:
+        dockerfilePath: 1.8/Dockerfile
     output:
       to:
         kind: "ImageStreamTag"
-        name: "${APPLICATION_NAME}:latest"
+        name: "go:latest"
+
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: go
 
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     name: ${APPLICATION_NAME}
     annotations:
-      description: Openshift Slack Notifications
+      description: Defines how to deploy the go environment
   spec:
     triggers:
       - type: ConfigChange
@@ -55,9 +42,9 @@ objects:
           containerNames:
             - ${APPLICATION_NAME}
           from:
-            kind: "ImageStreamTag"
-            name: ${APPLICATION_NAME}:latest
-    replicas: 1
+            kind: ImageStreamTag
+            name: go:latest
+    replicas: 0
     selector:
       name: ${APPLICATION_NAME}
     template:
@@ -75,19 +62,33 @@ objects:
                 value: ${OPENSHIFT_CONSOLE_URL}
             image: ' '
             readinessProbe:
-              tcpSocket:
-                  port: 8080
+              httpGet:
+                path: /
+                port: 8080
               initialDelaySeconds: 60
               timeoutSeconds: 1
             stdin: true
             tty: true
+            volumeMounts:
+              - mountPath: "/opt/app-root/src/go/github.com/outtherelabs/openshift-slack-notifications"
+                name: source
+        securityContext:
+          runAsUser: 0
+        volumes:
+        - name: source
+          hostPath:
+            path: ${SOURCE_PATH}
 
 parameters:
 - description: The name of the environment
   displayName: Application name
   name: APPLICATION_NAME
   required: true
-  value: openshift-slack-notifications
+  value: go-dev
+- description: The path to your source directory
+  displayName: Source Path
+  name: SOURCE_PATH
+  required: true
 - description: Openshift console URL. E.g. http://company.com/console
   displayName: OpenShift Console URL
   name: OPENSHIFT_CONSOLE_URL

@@ -1,5 +1,5 @@
 hash: 0408df271549ab7b97a0542ca6685eae80a0b9917fc0c06073cbd2e2393a033f
-updated: 2017-03-25T22:40:28.028341131-07:00
+updated: 2017-03-28T12:53:34.774302954-07:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -207,7 +207,6 @@ imports:
   - pkg/util
   - pkg/util/cert
   - pkg/util/clock
-  - pkg/util/diff
   - pkg/util/errors
   - pkg/util/flowcontrol
   - pkg/util/framer
@@ -234,7 +233,6 @@ imports:
   - plugin/pkg/client/auth/oidc
   - rest
   - tools
-  - tools/cache
   - tools/clientcmd/api
   - tools/metrics
   - transport

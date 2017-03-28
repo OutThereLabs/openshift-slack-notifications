@@ -22,6 +22,7 @@ type SlackField struct {
 }
 
 type SlackAttachment struct {
+	Color 	   string	`json:"color"`
 	AuthorName string       `json:"author_name"`
 	AuthorLink string       `json:"author_link"`
 	Title      string       `json:"title"`
@@ -47,6 +48,7 @@ func notifySlack(event *v1.Event) {
 	message := SlackMessage{
 		Attachments: []SlackAttachment{
 			{
+				Color: 	    "warning",
 				AuthorName: event.InvolvedObject.Namespace,
 				AuthorLink: monitoringUrl(event),
 				Title:      event.InvolvedObject.Name,

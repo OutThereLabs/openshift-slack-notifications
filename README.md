@@ -2,7 +2,20 @@
 
 A project to send OpenShift error messages to a slack channel of your choice.
 
-## Cluster Requirements
+## Cluster Deployment
+
+To deploy this to OpenShift, simply process the
+
+```shell
+$ oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:<current-project-here>:default --as=system:admin
+$ oc new-app -f https://raw.githubusercontent.com/OutThereLabs/openshift-slack-notifications/master/template.yaml \
+             -p SLACK_WEBHOOK_URL=https://hooks.slack.com/services/<webhook-specifics-here> \
+             -p OPENSHIFT_CONSOLE_URL=https://<openshift-host-here>:8443/console
+```
+
+## Local Development
+
+### Cluster Requirements
 
 First you need a running minishift cluster. This can be installed via homebrew:
 
@@ -25,7 +38,7 @@ Then start the cluster with:
 $ minishift start --memory 4048
 ```
 
-## App Requirements
+### App Requirements
 
 First add the privileges to mount volumes and read cluster state to your service account:
 
@@ -38,16 +51,16 @@ $ oc adm policy add-cluster-role-to-user cluster-reader system:serviceaccount:my
 Then create your dev environment via the provided template
 
 ```shell
-$ oc process -f template.yaml -v SOURCE_PATH="${PWD}" SLACK_WEBHOOK_URL=<slack-webhook-url-here> OPENSHIFT_CONSOLE_URL=https://<cluster-ip-here>:8443/console | oc create -f -
+$ oc process -f debug-template.yaml -v SOURCE_PATH="${PWD}" SLACK_WEBHOOK_URL=<slack-webhook-url-here> OPENSHIFT_CONSOLE_URL=https://<cluster-ip-here>:8443/console | oc create -f -
 $ oc start-build go
 ```
 
-## Running the application
+### Debugging the app
 
 To run a local copy, start a debug pod
 
 ```shell
 $ oc debug dc/go-dev
 $ cd go/github.com/outtherelabs/openshift-slack-notifications && glide up
-$ go run src/main.go
+$ go run main.go
 ```
