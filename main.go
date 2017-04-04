@@ -22,7 +22,7 @@ type SlackField struct {
 }
 
 type SlackAttachment struct {
-	Color 	   string	`json:"color"`
+	Color      string       `json:"color"`
 	AuthorName string       `json:"author_name"`
 	AuthorLink string       `json:"author_link"`
 	Title      string       `json:"title"`
@@ -48,7 +48,7 @@ func notifySlack(event *v1.Event) {
 	message := SlackMessage{
 		Attachments: []SlackAttachment{
 			{
-				Color: 	    "warning",
+				Color:      "warning",
 				AuthorName: event.InvolvedObject.Namespace,
 				AuthorLink: monitoringUrl(event),
 				Title:      event.InvolvedObject.Name,
@@ -82,24 +82,24 @@ func notifySlack(event *v1.Event) {
 	}
 }
 
-func watchEvents(clientset *kubernetes.Clientset, startTime time.Time) {
+func watchEvents(clientset *kubernetes.Clientset) {
+	startTime := time.Now()
+	log.Printf("Watching events after %v", startTime)
+
 	watcher, err := clientset.CoreV1().Events("").Watch(v1.ListOptions{FieldSelector: "type=Warning"})
 	if err != nil {
 		panic(err.Error())
 	}
 
-	go func() {
-		for watchEvent := range watcher.ResultChan() {
-			event := watchEvent.Object.(*v1.Event)
-			if event.FirstTimestamp.Time.After(startTime) {
-				notifySlack(event)
-			}
+	for watchEvent := range watcher.ResultChan() {
+		event := watchEvent.Object.(*v1.Event)
+		if event.FirstTimestamp.Time.After(startTime) {
+			notifySlack(event)
 		}
-	}()
+	}
 }
 
 func main() {
-	startTime := time.Now()
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -110,7 +110,12 @@ func main() {
 		panic(err.Error())
 	}
 
-	watchEvents(clientset, startTime)
+	go func() {
+		for {
+			watchEvents(clientset)
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
