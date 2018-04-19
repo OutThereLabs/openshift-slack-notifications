@@ -27,7 +27,7 @@ objects:
     source:
       type: "Git"
       git:
-        uri: "https://github.com/outtherelabs/openshift-slack-notifications"
+        uri: "https://github.com/finderly/openshift-slack-notifications"
     strategy:
       type: Source
       sourceStrategy:
